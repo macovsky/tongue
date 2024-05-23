@@ -5,7 +5,6 @@
     [tongue.inst :as inst]
     [tongue.number :as number]
     [tongue.macro :as macro]
-    #?(:clj [clojure.future :refer :all])
     #?(:clj [clojure.spec.alpha :as spec])))
 
 
