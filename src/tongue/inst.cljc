@@ -1,11 +1,11 @@
 (ns tongue.inst
   (:require
-    [clojure.string :as str]
-    [tongue.macro :as macro]
-    #?(:clj [clojure.spec.alpha :as spec]))
+   [clojure.string :as str]
+   [tongue.macro :as macro]
+   #?(:clj [clojure.spec.alpha :as spec]))
   #?(:clj
-      (:import
-        [java.util Calendar])))
+     (:import
+      [java.util Calendar])))
 
 
 (defn- pad2 [i]
@@ -48,8 +48,8 @@
 (defn day-of-week [c] ;; Sunday => 0, ...
   #?(:clj  (dec (.get ^Calendar c Calendar/DAY_OF_WEEK))
      :cljs (.getDay c)))
-  
-  
+
+
 (defn day-of-month [c]
   #?(:clj  (.get ^Calendar c Calendar/DAY_OF_MONTH)
      :cljs (.getDate c)))
@@ -122,10 +122,10 @@
 
 
 #?(:cljs
-    (defn inst->date [inst]
-      (if (instance? js/Date inst)
-        inst
-        (js/Date. (inst-ms inst)))))
+   (defn inst->date [inst]
+     (if (instance? js/Date inst)
+       inst
+       (js/Date. (inst-ms inst)))))
 
 
 (defn formatter
@@ -136,44 +136,44 @@
     (spec/assert ::strings strings))
   
   (let [tokens (->> (re-seq #"(?:\{([^{} ]+)\}|\{|[^{]*)" template)
-                    (map (fn [[string code]] (if code (keyword code) string))))]
+                 (map (fn [[string code]] (if code (keyword code) string))))]
     #?(:clj
-        (fn format
-          ([t] 
-            (macro/with-spec
-              (spec/assert inst? t))
-            (format t UTC))
-          ([t tz]
-            (macro/with-spec
-              (spec/assert inst? t)
-              (spec/assert #(instance? java.util.TimeZone %) tz))
-            (let [cal (doto (Calendar/getInstance)
-                        (.setTimeZone tz)
-                        (.setTimeInMillis (inst-ms t)))]
-              (str
-                (reduce
-                  (fn [^StringBuilder sb token]
-                    (.append sb (format-token strings token cal)))
-                  (StringBuilder.)
-                  tokens)))))
-       :cljs
-        (fn format
-          ([t]
-            (macro/with-spec
-              (spec/assert inst? t))
-            (let [date (inst->date t)]
+       (fn format
+         ([t] 
+          (macro/with-spec
+            (spec/assert inst? t))
+          (format t UTC))
+         ([t tz]
+          (macro/with-spec
+            (spec/assert inst? t)
+            (spec/assert #(instance? java.util.TimeZone %) tz))
+          (let [cal (doto (Calendar/getInstance)
+                      (.setTimeZone tz)
+                      (.setTimeInMillis (inst-ms t)))]
+            (str
               (reduce
-                (fn [s token]
-                  (str s (format-token strings token date)))
-                "" tokens)))
-          ([t tz-offset-min]
-            (macro/with-spec
-              (spec/assert inst? t)
-              (spec/assert #(spec/int-in-range? -1440 1440 %)  tz-offset-min))
-            (let [date              (inst->date t)
-                  system-offset-min (- (.getTimezoneOffset date))
-                  corrected-t       (if (== system-offset-min tz-offset-min)
-                                      date
-                                      (js/Date. (+ (inst-ms date)
-                                                   (* 60000 (- tz-offset-min system-offset-min)))))]
-              (format corrected-t)))))))
+                (fn [^StringBuilder sb token]
+                  (.append sb (format-token strings token cal)))
+                (StringBuilder.)
+                tokens)))))
+       :cljs
+       (fn format
+         ([t]
+          (macro/with-spec
+            (spec/assert inst? t))
+          (let [date (inst->date t)]
+            (reduce
+              (fn [s token]
+                (str s (format-token strings token date)))
+              "" tokens)))
+         ([t tz-offset-min]
+          (macro/with-spec
+            (spec/assert inst? t)
+            (spec/assert #(spec/int-in-range? -1440 1440 %)  tz-offset-min))
+          (let [date              (inst->date t)
+                system-offset-min (- (.getTimezoneOffset date))
+                corrected-t       (if (== system-offset-min tz-offset-min)
+                                    date
+                                    (js/Date. (+ (inst-ms date)
+                                                (* 60000 (- tz-offset-min system-offset-min)))))]
+            (format corrected-t)))))))

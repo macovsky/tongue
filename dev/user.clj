@@ -4,7 +4,9 @@
 
 (duti/set-dirs "src" "dev" "test")
 
-(def reload
+(defn go [])
+
+(def reset
   duti/reload)
 
 (defn -main [& args]
